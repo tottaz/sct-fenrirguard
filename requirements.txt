@@ -1,0 +1,11 @@
+# SCT-FenrirGuard Requirements
+# External Python libraries needed to run daily_spam_analysis.py
+
+# HTTP requests (for Ollama or other API calls)
+requests>=2.30.0
+
+# OpenAI API client (optional if using OpenAI GPT models)
+openai>=1.27.0
+
+# JSONL support for structured output
+jsonlines>=3.3.0
