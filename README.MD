@@ -144,4 +144,5 @@ Notes:
 
 imaplib, email, smtplib, json, email.message are built-in Python libraries.
 
+```
 Pin versions if you want consistent behavior across environments.

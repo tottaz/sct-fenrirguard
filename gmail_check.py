@@ -3,7 +3,7 @@ import email
 import json
 from email.message import Message
 from openai import OpenAI
-import requests
+import ollama
 import jsonlines
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -54,8 +54,11 @@ def save_to_jsonl(email_id, subject, analysis_result):
 
 # === AI analysis function ===
 def analyze_email(body: str) -> str:
-    system_prompt = "You're a spam detection system. \
-        Classify the following email content as 'Spam' or 'Not Spam' and explain briefly why."
+    system_prompt = (
+        "You're a spam detection system. "
+        "Classify the following email content as 'Spam' or 'Not Spam' "
+        "and explain briefly why."
+    )
 
     if USE_OPENAI:
         client = OpenAI(api_key=OPENAI_API_KEY)
@@ -67,19 +70,28 @@ def analyze_email(body: str) -> str:
             ]
         )
         return response.choices[0].message.content.strip()
+
     else:
-        payload = {
-            "model": "llama3.2:latest",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": body}
-            ]
-        }
-        response = requests.post(f"{OLLAMA_URL}/chat/completions",
-                                 headers={"Content-Type": "application/json"},
-                                 json=payload)
-        result = response.json()
-        return result["choices"][0]["message"]["content"].strip()
+        # Safety check — test connection before asking Ollama to chat
+        try:
+            ping = ollama.list()
+            print(ping)
+        except Exception:
+            raise Exception(
+                "Ollama server is not running. Start it with: `ollama serve`"
+            )
+
+        try:
+            response = ollama.chat(
+                model="llama3.2:latest",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": body}
+                ]
+            )
+            return response["message"]["content"].strip()
+        except Exception as e:
+            raise Exception(f"Ollama chat error: {e}")
 
 
 # === Email sender ===
